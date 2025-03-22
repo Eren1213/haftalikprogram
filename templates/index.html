@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1 class="display-4">Ders Programı Yönetim Sistemine Hoş Geldiniz</h1>
+    <p class="lead">Bu sistem üzerinden ders programınızı yönetebilirsiniz.</p>
+    <hr class="my-4">
+    {% if not current_user.is_authenticated %}
+    <p>Devam etmek için lütfen giriş yapın.</p>
+    <a class="btn btn-primary btn-lg" href="{{ url_for('login') }}" role="button">Giriş Yap</a>
+    {% endif %}
+</div>
+{% endblock %}

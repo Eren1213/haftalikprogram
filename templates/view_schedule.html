@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    {% if current_user.role == 'admin' %}
+    <!-- Ders Ekleme Formu -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Ders Programına Ders Ekle</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="/schedule/add">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label for="course_id" class="form-label">Ders</label>
+                            <select class="form-select" id="course_id" name="course_id" required>
+                                <option value="">Ders Seçin</option>
+                                {% for course in courses %}
+                                <option value="{{ course.id }}">{{ course.code }} - {{ course.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label for="classroom_id" class="form-label">Derslik</label>
+                            <select class="form-select" id="classroom_id" name="classroom_id" required>
+                                <option value="">Derslik Seçin</option>
+                                {% for classroom in classrooms %}
+                                <option value="{{ classroom.id }}">{{ classroom.code }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="mb-3">
+                            <label for="day" class="form-label">Gün</label>
+                            <select class="form-select" id="day" name="day" required>
+                                <option value="">Gün Seçin</option>
+                                {% for day in days %}
+                                <option value="{{ day }}">{{ day }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="mb-3">
+                            <label for="start_time" class="form-label">Başlangıç Saati</label>
+                            <input type="time" class="form-control" id="start_time" name="start_time" required>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="mb-3">
+                            <label for="end_time" class="form-label">Bitiş Saati</label>
+                            <input type="time" class="form-control" id="end_time" name="end_time" required>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Ders Ekle</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Ders Programı Tablosu - Sınıf Düzeni -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">Haftalık Ders Programı</h5>
+            {% if current_user.role == 'admin' %}
+            <a href="{{ url_for('export_schedule') }}" class="btn btn-success">
+                <i class="bi bi-file-excel"></i> Excel Olarak İndir
+            </a>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Gün / Sınıf</th>
+                            <th>1. Sınıf</th>
+                            <th>2. Sınıf</th>
+                            <th>3. Sınıf</th>
+                            <th>4. Sınıf</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for day in days %}
+                        <tr>
+                            <td><strong>{{ day }}</strong></td>
+                            <!-- 1. Sınıf -->
+                            <td>
+                                {% for item in schedule_items %}
+                                {% if item.day == day and item.course.semester <= 2 %}
+                                <div class="schedule-item">
+                                    <strong>{{ item.course.code }}</strong><br>
+                                    {{ item.course.name }}<br>
+                                    <small>{{ item.classroom.code }}</small><br>
+                                    <small>{{ item.start_time }} - {{ item.end_time }}</small><br>
+                                    {% if item.course.instructor %}
+                                    <small class="text-primary">{{ item.course.instructor.name or item.course.instructor.username }}</small>
+                                    {% endif %}
+                                    {% if current_user.role == 'admin' %}
+                                    <form method="POST" action="{{ url_for('delete_schedule', schedule_id=item.id) }}" style="display:inline;">
+                                        <button type="submit" class="btn btn-primary btn-sm mt-1 delete-btn">
+                                            <i class="bi bi-trash"></i> Sil
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                                {% endfor %}
+                            </td>
+                            <!-- 2. Sınıf -->
+                            <td>
+                                {% for item in schedule_items %}
+                                {% if item.day == day and item.course.semester > 2 and item.course.semester <= 4 %}
+                                <div class="schedule-item">
+                                    <strong>{{ item.course.code }}</strong><br>
+                                    {{ item.course.name }}<br>
+                                    <small>{{ item.classroom.code }}</small><br>
+                                    <small>{{ item.start_time }} - {{ item.end_time }}</small><br>
+                                    {% if item.course.instructor %}
+                                    <small class="text-primary">{{ item.course.instructor.name or item.course.instructor.username }}</small>
+                                    {% endif %}
+                                    {% if current_user.role == 'admin' %}
+                                    <form method="POST" action="{{ url_for('delete_schedule', schedule_id=item.id) }}" style="display:inline;">
+                                        <button type="submit" class="btn btn-primary btn-sm mt-1 delete-btn">
+                                            <i class="bi bi-trash"></i> Sil
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                                {% endfor %}
+                            </td>
+                            <!-- 3. Sınıf -->
+                            <td>
+                                {% for item in schedule_items %}
+                                {% if item.day == day and item.course.semester > 4 and item.course.semester <= 6 %}
+                                <div class="schedule-item">
+                                    <strong>{{ item.course.code }}</strong><br>
+                                    {{ item.course.name }}<br>
+                                    <small>{{ item.classroom.code }}</small><br>
+                                    <small>{{ item.start_time }} - {{ item.end_time }}</small><br>
+                                    {% if item.course.instructor %}
+                                    <small class="text-primary">{{ item.course.instructor.name or item.course.instructor.username }}</small>
+                                    {% endif %}
+                                    {% if current_user.role == 'admin' %}
+                                    <form method="POST" action="{{ url_for('delete_schedule', schedule_id=item.id) }}" style="display:inline;">
+                                        <button type="submit" class="btn btn-primary btn-sm mt-1 delete-btn">
+                                            <i class="bi bi-trash"></i> Sil
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                                {% endfor %}
+                            </td>
+                            <!-- 4. Sınıf -->
+                            <td>
+                                {% for item in schedule_items %}
+                                {% if item.day == day and item.course.semester > 6 %}
+                                <div class="schedule-item">
+                                    <strong>{{ item.course.code }}</strong><br>
+                                    {{ item.course.name }}<br>
+                                    <small>{{ item.classroom.code }}</small><br>
+                                    <small>{{ item.start_time }} - {{ item.end_time }}</small><br>
+                                    {% if item.course.instructor %}
+                                    <small class="text-primary">{{ item.course.instructor.name or item.course.instructor.username }}</small>
+                                    {% endif %}
+                                    {% if current_user.role == 'admin' %}
+                                    <form method="POST" action="{{ url_for('delete_schedule', schedule_id=item.id) }}" style="display:inline;">
+                                        <button type="submit" class="btn btn-primary btn-sm mt-1 delete-btn">
+                                            <i class="bi bi-trash"></i> Sil
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                                {% endfor %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.schedule-item {
+    background-color: #f8f9fa;
+    padding: 5px;
+    margin: 2px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.delete-btn {
+    display: block;
+    width: 100%;
+    font-size: 0.8em;
+    padding: 2px 5px;
+}
+
+.btn-danger {
+    color: #fff;
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-danger:hover {
+    color: #fff;
+    background-color: #bb2d3b;
+    border-color: #b02a37;
+}
+
+select.form-select {
+    display: block !important;
+    width: 100% !important;
+    padding: 0.375rem 2.25rem 0.375rem 0.75rem !important;
+    font-size: 1rem !important;
+    font-weight: 400 !important;
+    line-height: 1.5 !important;
+    color: #212529 !important;
+    background-color: #fff !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 0.75rem center !important;
+    background-size: 16px 12px !important;
+    border: 1px solid #ced4da !important;
+    border-radius: 0.375rem !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+}
+
+select.form-select:focus {
+    border-color: #86b7fe !important;
+    outline: 0 !important;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Tüm silme formlarını seç
+    const deleteForms = document.querySelectorAll('form');
+    
+    // Her bir forma olay dinleyicisi ekle
+    deleteForms.forEach(form => {
+        if (form.action && form.action.includes('delete_schedule')) {
+            form.addEventListener('submit', function(e) {
+                // Varsayılan gönderme davranışını engelle
+                e.preventDefault();
+                
+                // Onay iletişim kutusu göster
+                if (confirm('Bu dersi programdan silmek istediğinize emin misiniz?')) {
+                    // Kullanıcı onaylarsa formu gönder
+                    this.submit();
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %} 
